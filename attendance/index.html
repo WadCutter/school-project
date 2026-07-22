@@ -1,11 +1,377 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Attendance Register - B.S.D. Academia</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Hello World!</h1>
+<body class="bg-gray-50 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+
+  <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 border border-gray-100">
+    
+    <!-- Header Section -->
+    <div class="border-b border-gray-200 pb-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-red-900 tracking-tight">
+          Daily Attendance Register
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">
+          Select branch and fill class strength to calculate reports.
+        </p>
+      </div>
+
+      <!-- Branch Selector -->
+      <div class="flex items-center gap-2">
+        <label for="branchSelect" class="font-semibold text-gray-700 text-sm whitespace-nowrap">
+          Select Branch:
+        </label>
+        <select
+          id="branchSelect"
+          onchange="updateSummary()"
+          class="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-900 font-medium text-sm"
+        >
+          <option value="Moazzam Nagar">Moazzam Nagar</option>
+          <option value="Baraura">Baraura</option>
+          <option value="Fareedipur">Fareedipur</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Attendance Form Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-100 border-b border-gray-200 text-xs font-bold text-gray-700 uppercase tracking-wider">
+            <th class="py-3 px-3">Class & Sec</th>
+            <th class="py-3 px-3 w-28">Total</th>
+            <th class="py-3 px-3 w-28">Present</th>
+            <th class="py-3 px-3 w-28">Absent</th>
+            <th class="py-3 px-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTableBody" class="divide-y divide-gray-200 text-sm">
+          <!-- Rows dynamically populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Grand Total Summary Footer -->
+    <div class="mt-8 p-4 bg-gray-900 text-white rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="grid grid-cols-3 gap-6 text-center sm:text-left w-full sm:w-auto">
+        <div>
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Total</p>
+          <p id="grandTotal" class="text-xl font-bold">0</p>
+        </div>
+        <div>
+          <p class="text-xs text-emerald-400 font-medium uppercase tracking-wider">Present</p>
+          <p id="grandPresent" class="text-xl font-bold text-emerald-400">0</p>
+        </div>
+        <div>
+          <p class="text-xs text-rose-400 font-medium uppercase tracking-wider">Absent</p>
+          <p id="grandAbsent" class="text-xl font-bold text-rose-400">0</p>
+        </div>
+      </div>
+
+      <!-- WhatsApp Copy Action -->
+      <button
+        type="button"
+        id="copyBtn"
+        onclick="copyWhatsAppReport()"
+        class="w-full sm:w-auto px-6 py-2.5 rounded-lg font-bold text-sm bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-200 shadow-md"
+      >
+        Copy WhatsApp Report
+      </button>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    const BASE_CLASSES = [
+      'PG', 'NURSERY', 'KG', 'I', 'II', 'III', 'IV', 'V',
+      'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'
+    ];
+
+    // -------------------------------------------------------------
+    // DUMMY DATA FOR TESTING
+    // Set ENABLE_DUMMY_DATA to false when ready for production!
+    // -------------------------------------------------------------
+    const ENABLE_DUMMY_DATA = true;
+
+    const TEST_DUMMY_DATA = {
+      'PG': [
+        { total: 30, present: 25, absent: 5 },
+        { total: 28, present: 28, absent: 0 }
+      ],
+      'NURSERY': [
+        { total: 40, present: 35, absent: 5 },
+        { total: 38, present: 32, absent: 6 }
+      ],
+      'KG': [
+        { total: 45, present: 40, absent: 5 }
+      ],
+      'I': [
+        { total: 50, present: 48, absent: 2 }
+      ]
+    };
+    // -------------------------------------------------------------
+
+    // Convert index to Letter (0 -> A, 1 -> B, etc.)
+    function getSectionLetter(index) {
+      return String.fromCharCode(65 + index);
+    }
+
+    // Initialize State Data Structure
+    let classList = BASE_CLASSES.map(cls => {
+      const dummySections = ENABLE_DUMMY_DATA ? TEST_DUMMY_DATA[cls] : null;
+
+      if (dummySections && dummySections.length > 0) {
+        return {
+          className: cls,
+          sections: dummySections.map((sec, idx) => ({
+            sectionLetter: getSectionLetter(idx),
+            total: sec.total,
+            present: sec.present,
+            absent: sec.absent
+          }))
+        };
+      }
+
+      return {
+        className: cls,
+        sections: [
+          { sectionLetter: 'A', total: '', present: '', absent: '' },
+          { sectionLetter: 'B', total: '', present: '', absent: '' }
+        ]
+      };
+    });
+
+    // Render Table Content
+    function renderTable() {
+      const tbody = document.getElementById('attendanceTableBody');
+      tbody.innerHTML = '';
+
+      classList.forEach((clsItem, cIndex) => {
+        clsItem.sections.forEach((sec, sIndex) => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-gray-50/50 transition-colors';
+
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-bold text-gray-800">
+              ${clsItem.className} - ${sec.sectionLetter}
+            </td>
+            <td class="py-2 px-3">
+              <input
+                type="number"
+                placeholder="0"
+                value="${sec.total}"
+                oninput="handleInputChange(${cIndex}, ${sIndex}, 'total', this.value)"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-1 focus:ring-red-900"
+              />
+            </td>
+            <td class="py-2 px-3">
+              <input
+                type="number"
+                placeholder="0"
+                value="${sec.present}"
+                oninput="handleInputChange(${cIndex}, ${sIndex}, 'present', this.value)"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-emerald-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+            </td>
+            <td class="py-2 px-3">
+              <input
+                type="number"
+                placeholder="0"
+                value="${sec.absent}"
+                oninput="handleInputChange(${cIndex}, ${sIndex}, 'absent', this.value)"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-rose-600 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500"
+              />
+            </td>
+            <td class="py-2 px-3 text-right">
+              ${
+                clsItem.sections.length > 1
+                  ? `<button type="button" onclick="removeSection(${cIndex}, ${sIndex})" class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 bg-rose-50 hover:bg-rose-100 rounded transition-colors">Delete</button>`
+                  : ''
+              }
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Add Section Row
+        const addRow = document.createElement('tr');
+        addRow.className = 'border-b-2 border-gray-200 bg-gray-50/30';
+        addRow.innerHTML = `
+          <td colSpan="5" class="py-1.5 px-3">
+            <button
+              type="button"
+              onclick="addSection(${cIndex})"
+              class="text-xs font-semibold text-blue-700 hover:text-blue-900 flex items-center gap-1 py-1"
+            >
+              + Add Section to ${clsItem.className}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(addRow);
+      });
+
+      updateSummary();
+    }
+
+    // Dynamic Bidirectional Calculation
+    function handleInputChange(cIndex, sIndex, field, val) {
+      const sec = classList[cIndex].sections[sIndex];
+      const numVal = val === '' ? '' : Math.max(0, parseInt(val, 10) || 0);
+
+      sec[field] = numVal;
+
+      const total = typeof sec.total === 'number' ? sec.total : 0;
+      const present = typeof sec.present === 'number' ? sec.present : 0;
+      const absent = typeof sec.absent === 'number' ? sec.absent : 0;
+
+      if (field === 'total') {
+        if (typeof sec.present === 'number') {
+          sec.absent = Math.max(0, numVal === '' ? 0 : numVal - present);
+        } else if (typeof sec.absent === 'number') {
+          sec.present = Math.max(0, numVal === '' ? 0 : numVal - absent);
+        }
+      } else if (field === 'present') {
+        if (typeof sec.total === 'number' && sec.total > 0) {
+          sec.absent = Math.max(0, total - (numVal === '' ? 0 : numVal));
+        }
+      } else if (field === 'absent') {
+        if (typeof sec.total === 'number' && sec.total > 0) {
+          sec.present = Math.max(0, total - (numVal === '' ? 0 : numVal));
+        }
+      }
+
+      // Re-render inputs to reflect updated auto-calculated values
+      renderTable();
+    }
+
+    // Add Section
+    function addSection(cIndex) {
+      const targetClass = classList[cIndex];
+      const newLetter = getSectionLetter(targetClass.sections.length);
+      targetClass.sections.push({
+        sectionLetter: newLetter,
+        total: '',
+        present: '',
+        absent: ''
+      });
+      renderTable();
+    }
+
+    // Remove Section
+    function removeSection(cIndex, sIndex) {
+      classList[cIndex].sections.splice(sIndex, 1);
+      // Re-label sections alphabetically
+      classList[cIndex].sections = classList[cIndex].sections.map((sec, idx) => ({
+        ...sec,
+        sectionLetter: getSectionLetter(idx)
+      }));
+      renderTable();
+    }
+
+    // Update Summary Footer Totals
+    function updateSummary() {
+      let grandTotal = 0;
+      let grandPresent = 0;
+      let grandAbsent = 0;
+
+      classList.forEach(cls => {
+        cls.sections.forEach(sec => {
+          grandTotal += typeof sec.total === 'number' ? sec.total : 0;
+          grandPresent += typeof sec.present === 'number' ? sec.present : 0;
+          grandAbsent += typeof sec.absent === 'number' ? sec.absent : 0;
+        });
+      });
+
+      document.getElementById('grandTotal').innerText = grandTotal;
+      document.getElementById('grandPresent').innerText = grandPresent;
+      document.getElementById('grandAbsent').innerText = grandAbsent;
+    }
+
+    // Generate Aligned WhatsApp Monospace Report
+    function generateWhatsAppText() {
+      const selectedBranch = document.getElementById('branchSelect').value;
+      const today = new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+
+      let grandTotal = 0;
+      let grandPresent = 0;
+      let grandAbsent = 0;
+
+      let text = `🏫 *B.S.D. ACADEMIA*\n`;
+      text += `📌 *Branch:* ${selectedBranch}\n`;
+      text += `📅 *Date:* ${today}\n\n`;
+
+      text += `\`\`\`\n`;
+
+      const pad = (str, length, alignRight = false) => {
+        const s = String(str);
+        if (s.length >= length) return s.slice(0, length);
+        const spaces = ' '.repeat(length - s.length);
+        return alignRight ? spaces + s : s + spaces;
+      };
+
+      text += `${pad('CLASS', 11)} ${pad('PRESENT', 8, true)} ${pad('ABSENT', 7, true)} ${pad('TOTAL', 6, true)}\n`;
+      text += `${'-'.repeat(35)}\n`;
+
+      let activeCount = 0;
+
+      classList.forEach(cls => {
+        cls.sections.forEach(sec => {
+          const total = typeof sec.total === 'number' ? sec.total : 0;
+          const present = typeof sec.present === 'number' ? sec.present : 0;
+          const absent = typeof sec.absent === 'number' ? sec.absent : 0;
+
+          if (total > 0) {
+            const classNameStr = `${cls.className} ${sec.sectionLetter}`;
+            text += `${pad(classNameStr, 11)} ${pad(present, 8, true)} ${pad(absent, 7, true)} ${pad(total, 6, true)}\n`;
+            activeCount++;
+
+            grandTotal += total;
+            grandPresent += present;
+            grandAbsent += absent;
+          }
+        });
+      });
+
+      if (activeCount === 0) {
+        text += `  No active attendance filled.\n`;
+      }
+
+      text += `${'-'.repeat(35)}\n`;
+      text += `${pad('TOTAL:', 11)} ${pad(grandPresent, 8, true)} ${pad(grandAbsent, 7, true)} ${pad(grandTotal, 6, true)}\n`;
+
+      text += `\`\`\`\n`;
+
+      return text;
+    }
+
+    // Copy to Clipboard Action
+    function copyWhatsAppReport() {
+      const formattedText = generateWhatsAppText();
+      navigator.clipboard.writeText(formattedText);
+
+      const btn = document.getElementById('copyBtn');
+      btn.innerText = '✓ Copied to Clipboard!';
+      btn.classList.replace('bg-emerald-500', 'bg-emerald-600');
+
+      setTimeout(() => {
+        btn.innerText = 'Copy WhatsApp Report';
+        btn.classList.replace('bg-emerald-600', 'bg-emerald-500');
+      }, 2500);
+    }
+
+    // Initial Load
+    renderTable();
+  </script>
 </body>
 </html>
