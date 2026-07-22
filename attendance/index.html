@@ -18,7 +18,7 @@
           Daily Attendance Register
         </h1>
         <p class="text-sm text-gray-500 mt-1">
-          Select branch to load class sections and enter attendance.
+          Select branch or load via URL query string (e.g., <code class="text-xs bg-gray-100 px-1 py-0.5 rounded text-gray-700">?branch=Fareedipur</code>).
         </p>
       </div>
 
@@ -197,7 +197,7 @@
         });
       });
 
-      // Rebuild classList structure using new branch defaults, preserving entered data
+      // Rebuild classList structure using branch defaults, preserving entered data
       classList = BASE_CLASSES.map(cls => {
         const sectionsList = (config && config[cls]) ? config[cls] : ['A', 'B'];
 
@@ -242,6 +242,29 @@
         branchSelect.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500');
       }
       if (summaryMsg) summaryMsg.classList.add('hidden');
+    }
+
+    // Read Branch from Query String (?branch=... or ?b=...)
+    function checkAndApplyQueryStringBranch() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryBranch = urlParams.get('branch') || urlParams.get('b');
+
+      if (!queryBranch) return false;
+
+      // Case-insensitive matching against available branches
+      const availableBranches = Object.keys(BRANCH_CONFIG);
+      const matchedBranch = availableBranches.find(
+        b => b.toLowerCase() === queryBranch.trim().toLowerCase()
+      );
+
+      if (matchedBranch) {
+        const branchSelect = document.getElementById('branchSelect');
+        branchSelect.value = matchedBranch;
+        loadBranchConfig(matchedBranch);
+        return true;
+      }
+
+      return false;
     }
 
     // Handle Section Letter Edit
@@ -594,9 +617,12 @@
       }, 2500);
     }
 
-    // Initial Default Load
+    // Initialization Sequence
     initializeDefaultState();
-    renderTable();
+    const loadedFromUrl = checkAndApplyQueryStringBranch();
+    if (!loadedFromUrl) {
+      renderTable();
+    }
   </script>
 </body>
 </html>
