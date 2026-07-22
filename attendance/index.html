@@ -25,18 +25,24 @@
       <!-- Branch Selector -->
       <div class="flex items-center gap-2">
         <label for="branchSelect" class="font-semibold text-gray-700 text-sm whitespace-nowrap">
-          Select Branch:
+          Select Branch: <span class="text-rose-600">*</span>
         </label>
         <select
           id="branchSelect"
-          onchange="updateSummary()"
+          onchange="clearBranchError()"
           class="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-900 font-medium text-sm"
         >
+          <option value="" disabled selected>-- Select Branch --</option>
           <option value="Moazzam Nagar">Moazzam Nagar</option>
           <option value="Baraura">Baraura</option>
           <option value="Fareedipur">Fareedipur</option>
         </select>
       </div>
+    </div>
+
+    <!-- Error Banner for Unselected Branch -->
+    <div id="branchErrorMsg" class="hidden mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 font-medium text-sm rounded-lg text-center">
+      ⚠️ Please select a Branch before generating or sending the WhatsApp report!
     </div>
 
     <!-- Attendance Form Table -->
@@ -74,14 +80,14 @@
         </div>
       </div>
 
-      <!-- WhatsApp Copy Action -->
+      <!-- WhatsApp Send Action -->
       <button
         type="button"
-        id="copyBtn"
-        onclick="copyWhatsAppReport()"
-        class="w-full sm:w-auto px-6 py-2.5 rounded-lg font-bold text-sm bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-200 shadow-md"
+        id="sendBtn"
+        onclick="sendToWhatsApp()"
+        class="w-full sm:w-auto px-6 py-2.5 rounded-lg font-bold text-sm bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-200 shadow-md flex items-center justify-center gap-2"
       >
-        Copy WhatsApp Report
+        <span>Send to WhatsApp</span>
       </button>
     </div>
 
@@ -94,29 +100,29 @@
       'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'
     ];
 
-    // -------------------------------------------------------------
-    // DUMMY DATA FOR TESTING
-    // Set ENABLE_DUMMY_DATA to false when ready for production!
-    // -------------------------------------------------------------
-    const ENABLE_DUMMY_DATA = true;
+    /* =============================================================
+       DUMMY DATA FOR TESTING (DISABLED)
+       Uncomment and set ENABLE_DUMMY_DATA = true for testing.
+       ============================================================= */
+    const ENABLE_DUMMY_DATA = false;
 
     const TEST_DUMMY_DATA = {
-      'PG': [
-        { total: 30, present: 25, absent: 5 },
-        { total: 28, present: 28, absent: 0 }
-      ],
-      'NURSERY': [
-        { total: 40, present: 35, absent: 5 },
-        { total: 38, present: 32, absent: 6 }
-      ],
-      'KG': [
-        { total: 45, present: 40, absent: 5 }
-      ],
-      'I': [
-        { total: 50, present: 48, absent: 2 }
-      ]
+      // 'PG': [
+      //   { total: 30, present: 25, absent: 5 },
+      //   { total: 28, present: 28, absent: 0 }
+      // ],
+      // 'NURSERY': [
+      //   { total: 40, present: 35, absent: 5 },
+      //   { total: 38, present: 32, absent: 6 }
+      // ],
+      // 'KG': [
+      //   { total: 45, present: 40, absent: 5 }
+      // ],
+      // 'I': [
+      //   { total: 50, present: 48, absent: 2 }
+      // ]
     };
-    // -------------------------------------------------------------
+    /* ============================================================= */
 
     // Convert index to Letter (0 -> A, 1 -> B, etc.)
     function getSectionLetter(index) {
@@ -247,7 +253,6 @@
         }
       }
 
-      // Re-render inputs to reflect updated auto-calculated values
       renderTable();
     }
 
@@ -267,12 +272,22 @@
     // Remove Section
     function removeSection(cIndex, sIndex) {
       classList[cIndex].sections.splice(sIndex, 1);
-      // Re-label sections alphabetically
       classList[cIndex].sections = classList[cIndex].sections.map((sec, idx) => ({
         ...sec,
         sectionLetter: getSectionLetter(idx)
       }));
       renderTable();
+    }
+
+    // Clear error message when user selects a branch
+    function clearBranchError() {
+      const errorMsg = document.getElementById('branchErrorMsg');
+      const branchSelect = document.getElementById('branchSelect');
+      
+      if (branchSelect.value) {
+        errorMsg.classList.add('hidden');
+        branchSelect.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500');
+      }
     }
 
     // Update Summary Footer Totals
@@ -295,8 +310,7 @@
     }
 
     // Generate Aligned WhatsApp Monospace Report
-    function generateWhatsAppText() {
-      const selectedBranch = document.getElementById('branchSelect').value;
+    function generateWhatsAppText(selectedBranch) {
       const today = new Date().toLocaleDateString('en-IN', {
         day: '2-digit',
         month: '2-digit',
@@ -355,17 +369,40 @@
       return text;
     }
 
-    // Copy to Clipboard Action
-    function copyWhatsAppReport() {
-      const formattedText = generateWhatsAppText();
-      navigator.clipboard.writeText(formattedText);
+    // Open WhatsApp directly & copy text to clipboard as backup
+    function sendToWhatsApp() {
+      const branchSelect = document.getElementById('branchSelect');
+      const selectedBranch = branchSelect.value;
+      const errorMsg = document.getElementById('branchErrorMsg');
 
-      const btn = document.getElementById('copyBtn');
-      btn.innerText = '✓ Copied to Clipboard!';
+      // Enforce Branch Selection
+      if (!selectedBranch) {
+        errorMsg.classList.remove('hidden');
+        branchSelect.classList.add('border-rose-500', 'ring-2', 'ring-rose-500');
+        branchSelect.focus();
+        return;
+      }
+
+      const formattedText = generateWhatsAppText(selectedBranch);
+
+      // 1. Copy to clipboard as backup
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(formattedText);
+      }
+
+      // 2. Open WhatsApp deep link with pre-filled text
+      const encodedText = encodeURIComponent(formattedText);
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+
+      window.open(whatsappUrl, '_blank');
+
+      // Visual feedback on button
+      const btn = document.getElementById('sendBtn');
+      btn.innerHTML = '<span>✓ Opening WhatsApp...</span>';
       btn.classList.replace('bg-emerald-500', 'bg-emerald-600');
 
       setTimeout(() => {
-        btn.innerText = 'Copy WhatsApp Report';
+        btn.innerHTML = '<span>Send to WhatsApp</span>';
         btn.classList.replace('bg-emerald-600', 'bg-emerald-500');
       }, 2500);
     }
