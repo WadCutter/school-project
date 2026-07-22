@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Attendance Register - B.S.D. Academia</title>
+  <title>Daily Attendance Register - B.S.D. Academy</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -38,6 +38,14 @@
           <option value="Fareedipur">Fareedipur</option>
         </select>
       </div>
+    </div>
+
+    <!-- Storage Restored Notification Banner -->
+    <div id="restoredBanner" class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 font-medium text-sm rounded-lg flex justify-between items-center">
+      <span>💾 <strong>Restored saved draft</strong> for today's attendance.</span>
+      <button onclick="clearSavedData()" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold px-2 py-1 rounded transition-colors">
+        Clear Draft
+      </button>
     </div>
 
     <!-- Error Banner for Unselected Branch or Validation Errors -->
@@ -99,6 +107,8 @@
 
   <!-- JavaScript Logic -->
   <script>
+    const STORAGE_KEY = 'bsd_academy_attendance_draft';
+
     const BASE_CLASSES = [
       'PG', 'NURSERY', 'KG', 'I', 'II', 'III', 'IV', 'V',
       'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'
@@ -164,6 +174,67 @@
     // Global Working State
     let classList = [];
 
+    // Helper to get today's date formatted as YYYY-MM-DD
+    function getTodayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    // Auto-save state to LocalStorage
+    function saveToLocalStorage() {
+      const branchSelect = document.getElementById('branchSelect');
+      const payload = {
+        date: getTodayKey(),
+        branch: branchSelect ? branchSelect.value : '',
+        classList: classList
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch (e) {
+        console.warn('Unable to save draft to localStorage', e);
+      }
+    }
+
+    // Try restoring state from LocalStorage
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+
+        const data = JSON.parse(raw);
+        // Expire data if saved on a previous day
+        if (data.date !== getTodayKey()) {
+          localStorage.removeItem(STORAGE_KEY);
+          return false;
+        }
+
+        if (data.branch) {
+          const branchSelect = document.getElementById('branchSelect');
+          branchSelect.value = data.branch;
+        }
+
+        if (Array.isArray(data.classList) && data.classList.length > 0) {
+          classList = data.classList;
+          renderTable();
+          document.getElementById('restoredBanner').classList.remove('hidden');
+          return true;
+        }
+      } catch (e) {
+        console.warn('Unable to read draft from localStorage', e);
+      }
+      return false;
+    }
+
+    // Clear saved draft manually
+    function clearSavedData() {
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('restoredBanner').classList.add('hidden');
+      initializeDefaultState();
+      const branchSelect = document.getElementById('branchSelect');
+      branchSelect.value = '';
+      renderTable();
+    }
+
     // Convert index to Letter (0 -> A, 1 -> B, etc.)
     function getSectionLetter(index) {
       return String.fromCharCode(65 + index);
@@ -184,7 +255,6 @@
     function loadBranchConfig(branchName) {
       const config = BRANCH_CONFIG[branchName];
 
-      // Map existing filled data into a lookup table
       const dataMap = {};
       classList.forEach(cls => {
         cls.sections.forEach(sec => {
@@ -197,7 +267,6 @@
         });
       });
 
-      // Rebuild classList structure using branch defaults, preserving entered data
       classList = BASE_CLASSES.map(cls => {
         const sectionsList = (config && config[cls]) ? config[cls] : ['A', 'B'];
 
@@ -217,6 +286,7 @@
       });
 
       renderTable();
+      saveToLocalStorage();
     }
 
     // Handle Branch Dropdown Change
@@ -251,7 +321,6 @@
 
       if (!queryBranch) return false;
 
-      // Case-insensitive matching against available branches
       const availableBranches = Object.keys(BRANCH_CONFIG);
       const matchedBranch = availableBranches.find(
         b => b.toLowerCase() === queryBranch.trim().toLowerCase()
@@ -270,6 +339,7 @@
     // Handle Section Letter Edit
     function handleSectionNameChange(cIndex, sIndex, val) {
       classList[cIndex].sections[sIndex].sectionLetter = val;
+      saveToLocalStorage();
     }
 
     // Validation Check for a Single Section
@@ -297,7 +367,7 @@
       return { hasError, errorText };
     }
 
-    // Dynamically update validation styles and error message row without destroying focus
+    // Dynamically update validation styles without destroying focus
     function updateRowValidation(cIndex, sIndex) {
       const sec = classList[cIndex].sections[sIndex];
       const { hasError, errorText } = validateSection(sec);
@@ -466,7 +536,7 @@
       updateSummary();
     }
 
-    // Targeted Input Handler (Keeps focus intact)
+    // Targeted Input Handler
     function handleInputChange(cIndex, sIndex, field, val) {
       const sec = classList[cIndex].sections[sIndex];
       const numVal = val === '' ? '' : Math.max(0, parseInt(val, 10) || 0);
@@ -494,7 +564,7 @@
         }
       }
 
-      // Targeted DOM updates (without re-rendering table)
+      // Targeted DOM updates
       const totalInput = document.getElementById(`input-${cIndex}-${sIndex}-total`);
       const presentInput = document.getElementById(`input-${cIndex}-${sIndex}-present`);
       const absentInput = document.getElementById(`input-${cIndex}-${sIndex}-absent`);
@@ -503,11 +573,14 @@
       if (presentInput && document.activeElement !== presentInput) presentInput.value = sec.present;
       if (absentInput && document.activeElement !== absentInput) absentInput.value = sec.absent;
 
-      // Dynamically update error row & styling for this row only
+      // Dynamically update error row & styling
       updateRowValidation(cIndex, sIndex);
 
       // Update grand summary
       updateSummary();
+
+      // Save to localStorage
+      saveToLocalStorage();
     }
 
     // Add Section Manually
@@ -521,6 +594,7 @@
         absent: ''
       });
       renderTable();
+      saveToLocalStorage();
     }
 
     // Remove Section Manually
@@ -531,6 +605,7 @@
         sectionLetter: sec.sectionLetter ? sec.sectionLetter : getSectionLetter(idx)
       }));
       renderTable();
+      saveToLocalStorage();
     }
 
     // Update Footer Summary Totals
@@ -633,7 +708,6 @@
       const errorMsg = document.getElementById('branchErrorMsg');
       const summaryMsg = document.getElementById('validationErrorSummary');
 
-      // Rule 1: Enforce Branch Selection Hard-Stop
       if (!selectedBranch) {
         summaryMsg.classList.add('hidden');
         errorMsg.classList.remove('hidden');
@@ -642,13 +716,11 @@
         return;
       }
 
-      // Rule 2: Enforce Validation Hard-Stop
       const errorState = hasAnyValidationErrors();
       if (errorState) {
         errorMsg.classList.add('hidden');
         summaryMsg.classList.remove('hidden');
 
-        // Focus & Scroll directly to first invalid row
         const targetInput = document.getElementById(`input-${errorState.cIndex}-${errorState.sIndex}-present`);
         if (targetInput) {
           targetInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -657,24 +729,20 @@
         return;
       }
 
-      // Clear banners if passing
       errorMsg.classList.add('hidden');
       summaryMsg.classList.add('hidden');
 
       const formattedText = generateWhatsAppText(selectedBranch);
 
-      // Clipboard Backup
       if (navigator.clipboard) {
         navigator.clipboard.writeText(formattedText);
       }
 
-      // Open WhatsApp App Deep Link
       const encodedText = encodeURIComponent(formattedText);
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
 
       window.open(whatsappUrl, '_blank');
 
-      // Feedback
       const btn = document.getElementById('sendBtn');
       btn.innerHTML = '<span>✓ Opening WhatsApp...</span>';
       btn.classList.replace('bg-emerald-500', 'bg-emerald-600');
@@ -687,9 +755,12 @@
 
     // Initialization Sequence
     initializeDefaultState();
-    const loadedFromUrl = checkAndApplyQueryStringBranch();
-    if (!loadedFromUrl) {
-      renderTable();
+    const restored = loadFromLocalStorage();
+    if (!restored) {
+      const loadedFromUrl = checkAndApplyQueryStringBranch();
+      if (!loadedFromUrl) {
+        renderTable();
+      }
     }
   </script>
 </body>
