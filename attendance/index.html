@@ -18,7 +18,7 @@
           Daily Attendance Register
         </h1>
         <p class="text-sm text-gray-500 mt-1">
-          Select branch and fill class strength to calculate reports.
+          Select branch to load class sections and enter attendance.
         </p>
       </div>
 
@@ -29,7 +29,7 @@
         </label>
         <select
           id="branchSelect"
-          onchange="clearBranchError()"
+          onchange="handleBranchChange()"
           class="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-900 font-medium text-sm"
         >
           <option value="" disabled selected>-- Select Branch --</option>
@@ -101,60 +101,127 @@
     ];
 
     /* =============================================================
-       DUMMY DATA FOR TESTING (DISABLED)
-       Uncomment and set ENABLE_DUMMY_DATA = true for testing.
+       HARDCODED BRANCH SECTION CONFIGURATION
+       Customize the sections for each class per branch here.
        ============================================================= */
-    const ENABLE_DUMMY_DATA = false;
-
-    const TEST_DUMMY_DATA = {
-      // 'PG': [
-      //   { total: 30, present: 25, absent: 5 },
-      //   { total: 28, present: 28, absent: 0 }
-      // ],
-      // 'NURSERY': [
-      //   { total: 40, present: 35, absent: 5 },
-      //   { total: 38, present: 32, absent: 6 }
-      // ],
-      // 'KG': [
-      //   { total: 45, present: 40, absent: 5 }
-      // ],
-      // 'I': [
-      //   { total: 50, present: 48, absent: 2 }
-      // ]
+    const BRANCH_CONFIG = {
+      'Moazzam Nagar': {
+        'PG': ['A'],
+        'NURSERY': ['A', 'B', 'C'],
+        'KG': ['A', 'B'],
+        'I': ['A', 'B'],
+        'II': ['A', 'B'],
+        'III': ['A', 'B'],
+        'IV': ['A', 'B'],
+        'V': ['A', 'B'],
+        'VI': ['A', 'B'],
+        'VII': ['A', 'B'],
+        'VIII': ['A', 'B'],
+        'IX': ['A'],
+        'X': ['A'],
+        'XI': ['A'],
+        'XII': ['A']
+      },
+      'Baraura': {
+        'PG': ['A'],
+        'NURSERY': ['A'],
+        'KG': ['A'],
+        'I': ['A', 'B'],
+        'II': ['A', 'B'],
+        'III': ['A', 'B'],
+        'IV': ['A', 'B'],
+        'V': ['A'],
+        'VI': ['A'],
+        'VII': ['A'],
+        'VIII': ['A'],
+        'IX': ['A'],
+        'X': ['A'],
+        'XI': ['A'],
+        'XII': ['A']
+      },
+      'Fareedipur': {
+        'PG': ['A'],
+        'NURSERY': ['A', 'B'],
+        'KG': ['A', 'B'],
+        'I': ['A'],
+        'II': ['A'],
+        'III': ['A'],
+        'IV': ['A'],
+        'V': ['A'],
+        'VI': ['A'],
+        'VII': ['A'],
+        'VIII': ['A'],
+        'IX': ['A'],
+        'X': ['A'],
+        'XI': ['A'],
+        'XII': ['A']
+      }
     };
-    /* ============================================================= */
+
+    // Global Working State
+    let classList = [];
 
     // Convert index to Letter (0 -> A, 1 -> B, etc.)
     function getSectionLetter(index) {
       return String.fromCharCode(65 + index);
     }
 
-    // Initialize State Data Structure
-    let classList = BASE_CLASSES.map(cls => {
-      const dummySections = ENABLE_DUMMY_DATA ? TEST_DUMMY_DATA[cls] : null;
-
-      if (dummySections && dummySections.length > 0) {
-        return {
-          className: cls,
-          sections: dummySections.map((sec, idx) => ({
-            sectionLetter: getSectionLetter(idx),
-            total: sec.total,
-            present: sec.present,
-            absent: sec.absent
-          }))
-        };
-      }
-
-      return {
+    // Default Fallback Initializer (Sections A and B)
+    function initializeDefaultState() {
+      classList = BASE_CLASSES.map(cls => ({
         className: cls,
         sections: [
           { sectionLetter: 'A', total: '', present: '', absent: '' },
           { sectionLetter: 'B', total: '', present: '', absent: '' }
         ]
-      };
-    });
+      }));
+    }
 
-    // Render Table Content
+    // Load Hardcoded Section Config Based on Selected Branch
+    function loadBranchConfig(branchName) {
+      const config = BRANCH_CONFIG[branchName];
+
+      classList = BASE_CLASSES.map(cls => {
+        const sectionsList = (config && config[cls]) ? config[cls] : ['A', 'B'];
+
+        return {
+          className: cls,
+          sections: sectionsList.map(letter => ({
+            sectionLetter: letter,
+            total: '',
+            present: '',
+            absent: ''
+          }))
+        };
+      });
+
+      renderTable();
+    }
+
+    // Handle Branch Dropdown Change
+    function handleBranchChange() {
+      const branchSelect = document.getElementById('branchSelect');
+      const selectedBranch = branchSelect.value;
+
+      clearBranchError();
+
+      if (selectedBranch) {
+        loadBranchConfig(selectedBranch);
+      }
+    }
+
+    // Clear Branch Selection Error
+    function clearBranchError() {
+      const errorMsg = document.getElementById('branchErrorMsg');
+      const branchSelect = document.getElementById('branchSelect');
+      
+      if (branchSelect.value) {
+        errorMsg.classList.add('hidden');
+        branchSelect.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500');
+      }
+    }
+
+    // Render Table Content (Preserves IDs for non-destructive DOM updates)
     function renderTable() {
       const tbody = document.getElementById('attendanceTableBody');
       tbody.innerHTML = '';
@@ -171,6 +238,7 @@
             <td class="py-2 px-3">
               <input
                 type="number"
+                id="input-${cIndex}-${sIndex}-total"
                 placeholder="0"
                 value="${sec.total}"
                 oninput="handleInputChange(${cIndex}, ${sIndex}, 'total', this.value)"
@@ -180,6 +248,7 @@
             <td class="py-2 px-3">
               <input
                 type="number"
+                id="input-${cIndex}-${sIndex}-present"
                 placeholder="0"
                 value="${sec.present}"
                 oninput="handleInputChange(${cIndex}, ${sIndex}, 'present', this.value)"
@@ -189,6 +258,7 @@
             <td class="py-2 px-3">
               <input
                 type="number"
+                id="input-${cIndex}-${sIndex}-absent"
                 placeholder="0"
                 value="${sec.absent}"
                 oninput="handleInputChange(${cIndex}, ${sIndex}, 'absent', this.value)"
@@ -226,7 +296,7 @@
       updateSummary();
     }
 
-    // Dynamic Bidirectional Calculation
+    // Targeted DOM Input Handler (Prevents focus loss)
     function handleInputChange(cIndex, sIndex, field, val) {
       const sec = classList[cIndex].sections[sIndex];
       const numVal = val === '' ? '' : Math.max(0, parseInt(val, 10) || 0);
@@ -253,10 +323,19 @@
         }
       }
 
-      renderTable();
+      // Targeted DOM updates
+      const totalInput = document.getElementById(`input-${cIndex}-${sIndex}-total`);
+      const presentInput = document.getElementById(`input-${cIndex}-${sIndex}-present`);
+      const absentInput = document.getElementById(`input-${cIndex}-${sIndex}-absent`);
+
+      if (totalInput) totalInput.value = sec.total;
+      if (presentInput) presentInput.value = sec.present;
+      if (absentInput) absentInput.value = sec.absent;
+
+      updateSummary();
     }
 
-    // Add Section
+    // Add Section Manually
     function addSection(cIndex) {
       const targetClass = classList[cIndex];
       const newLetter = getSectionLetter(targetClass.sections.length);
@@ -269,7 +348,7 @@
       renderTable();
     }
 
-    // Remove Section
+    // Remove Section Manually
     function removeSection(cIndex, sIndex) {
       classList[cIndex].sections.splice(sIndex, 1);
       classList[cIndex].sections = classList[cIndex].sections.map((sec, idx) => ({
@@ -279,18 +358,7 @@
       renderTable();
     }
 
-    // Clear error message when user selects a branch
-    function clearBranchError() {
-      const errorMsg = document.getElementById('branchErrorMsg');
-      const branchSelect = document.getElementById('branchSelect');
-      
-      if (branchSelect.value) {
-        errorMsg.classList.add('hidden');
-        branchSelect.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500');
-      }
-    }
-
-    // Update Summary Footer Totals
+    // Update Footer Summary Totals
     function updateSummary() {
       let grandTotal = 0;
       let grandPresent = 0;
@@ -369,7 +437,7 @@
       return text;
     }
 
-    // Open WhatsApp directly & copy text to clipboard as backup
+    // Send Report to WhatsApp
     function sendToWhatsApp() {
       const branchSelect = document.getElementById('branchSelect');
       const selectedBranch = branchSelect.value;
@@ -385,18 +453,18 @@
 
       const formattedText = generateWhatsAppText(selectedBranch);
 
-      // 1. Copy to clipboard as backup
+      // Clipboard Backup
       if (navigator.clipboard) {
         navigator.clipboard.writeText(formattedText);
       }
 
-      // 2. Open WhatsApp deep link with pre-filled text
+      // Open WhatsApp App Deep Link
       const encodedText = encodeURIComponent(formattedText);
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
 
       window.open(whatsappUrl, '_blank');
 
-      // Visual feedback on button
+      // Feedback
       const btn = document.getElementById('sendBtn');
       btn.innerHTML = '<span>✓ Opening WhatsApp...</span>';
       btn.classList.replace('bg-emerald-500', 'bg-emerald-600');
@@ -407,7 +475,8 @@
       }, 2500);
     }
 
-    // Initial Load
+    // Initial Default Load
+    initializeDefaultState();
     renderTable();
   </script>
 </body>
