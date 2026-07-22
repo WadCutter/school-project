@@ -42,9 +42,9 @@
 
     <!-- Storage Restored Notification Banner -->
     <div id="restoredBanner" class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 font-medium text-sm rounded-lg flex justify-between items-center">
-      <span>💾 <strong>Restored saved draft</strong> for today's attendance.</span>
+      <span id="restoredBannerMsg">💾 <strong>Restored saved totals & structure</strong> for today's attendance.</span>
       <button onclick="clearSavedData()" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold px-2 py-1 rounded transition-colors">
-        Clear Draft
+        Clear All Saved Data
       </button>
     </div>
 
@@ -195,18 +195,14 @@
       }
     }
 
-    // Try restoring state from LocalStorage
+    // Restore state with daily partial expiry (keeps Totals & Structure, resets Present/Absent on new day)
     function loadFromLocalStorage() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return false;
 
         const data = JSON.parse(raw);
-        // Expire data if saved on a previous day
-        if (data.date !== getTodayKey()) {
-          localStorage.removeItem(STORAGE_KEY);
-          return false;
-        }
+        const isNewDay = (data.date !== getTodayKey());
 
         if (data.branch) {
           const branchSelect = document.getElementById('branchSelect');
@@ -214,9 +210,30 @@
         }
 
         if (Array.isArray(data.classList) && data.classList.length > 0) {
-          classList = data.classList;
+          classList = data.classList.map(cls => ({
+            className: cls.className,
+            sections: cls.sections.map(sec => ({
+              sectionLetter: sec.sectionLetter,
+              total: sec.total, // Always keep Total
+              present: isNewDay ? '' : sec.present, // Clear Present if new day
+              absent: isNewDay ? '' : sec.absent    // Clear Absent if new day
+            }))
+          }));
+
           renderTable();
-          document.getElementById('restoredBanner').classList.remove('hidden');
+
+          const banner = document.getElementById('restoredBanner');
+          const bannerMsg = document.getElementById('restoredBannerMsg');
+          banner.classList.remove('hidden');
+
+          if (isNewDay) {
+            bannerMsg.innerHTML = '☀️ <strong>New Day Started:</strong> Restored total student counts & custom sections. Present & Absent reset to blank.';
+            // Save updated structure with current date key
+            saveToLocalStorage();
+          } else {
+            bannerMsg.innerHTML = '💾 <strong>Restored saved draft</strong> for today\'s attendance.';
+          }
+
           return true;
         }
       } catch (e) {
