@@ -1,310 +1,290 @@
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="theme-color" content="#E54F17">
-    <title>Time Attendance</title>
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link type="text/css" rel="stylesheet" href="css/bootstrap.min.css" />
-	<link type="text/css" rel="stylesheet" href="css/owl.carousel.css" />
-	<link type="text/css" rel="stylesheet" href="css/owl.theme.default.css" />
-	<link type="text/css" rel="stylesheet" href="css/magnific-popup.css" />
-	<link rel="stylesheet" href="css/font-awesome.min.css">
-	<link type="text/css" rel="stylesheet" href="css/style.css" />	
-	<link rel="stylesheet" href="api/sidePanel/css/reset.css"> <!-- CSS reset -->
-	<link rel="stylesheet" href="api/sidePanel/css/style.css"> <!-- Resource style -->
-	<link rel="stylesheet" href="css/timetable.css">
-	<link rel="stylesheet" href="css/font-awesome.min.css">
-	<link href="css/AdminLTE.min.css" rel="stylesheet" type="text/css" />
-	<link rel="stylesheet" type="text/css" href="api/datePicker/css/DateTimePicker.css" />
-	<link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet" type="text/css"/>
-	<link href="api/notification/jquery.toast.css" rel="stylesheet">
-	<style>
-        .tabBlock
-        {
-            background-color:#57574f;
-            border:solid 0px #FFA54F;
-            border-radius:5px; -moz-border-radius:5px; -webkit-border-radius:5px;
-            max-width:200px;
-            width:100%;
-            overflow:hidden;
-            display:block;
-        }
-        .clock
-        {
-            vertical-align:middle;
-            font-family:Orbitron;
-            font-size:3eh;
-            font-weight:normal;
-            color:#FFF;
-            padding:0 10px;
-        }
-        .clocklg 
-        {
-            vertical-align:middle; 
-            font-family:Orbitron;
-            font-size:0.8em;
-            font-weight:normal;
-            color:#FFF;
+    <title>Staff Attendance Terminal</title>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jquery-toast-plugin for modern toast notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.js"></script>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glow {
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
     </style>
-	<style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
 
-#sub-menu a
-{
-	width:70px;
-	height:auto;
-	text-decoration: none;
-	display: inline-block;
-	color:#D23C05;
-	font-size : 12px;
-}
-#sub-menu p
-{
-	text-decoration: none;
-	text-shadow: 1px 1px 1px #FFF;
-	display: inline-block;
-	color:#D23C05;
-	font-size : 12px;
-}
-.box-title 
-{
-	display:inline-block;
-	font-size:14px;
-	margin:0;
-	line-height:1
-}
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="h-4 w-4 bg-emerald-500 rounded-full animate-pulse"></div>
+                <h1 class="text-xl font-bold tracking-wide text-white">Attendance Terminal</h1>
+            </div>
+            <!-- Live Digital Clock -->
+            <div class="flex items-baseline space-x-2 bg-slate-900 px-4 py-2 rounded-lg border border-slate-700">
+                <span id="dc" class="text-2xl font-mono font-bold text-blue-400 glow">00:00</span>
+                <span id="dc_second" class="text-sm font-mono text-slate-400">00</span>
+                <span id="dc_hour" class="text-xs font-semibold text-blue-500 uppercase">AM</span>
+            </div>
+        </div>
+    </header>
 
-	</style>
-  </head>
-  
-  <body class="noselect" style="overflow:hidden;fontfamily:calibri;background-image:url('img/bg1.jpg');background-position: center;  background-repeat: no-repeat;  background-size: cover;" onload="">
-  <input type="hidden" id="hid" value="1"/>
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-<div class="headerBar" style="background:#102D51;">
-		<table style="position:relative;color:white;font-size:1.5em; width:100%;margin-top:15px;" >
-			<tr>
-				<td align="center"><span style="float:left"><a href="#" style="color:white;">&nbsp;&nbsp;</a></span><i class="fa fa-clock-o"></i>&nbsp;TechnoEDU TIME ATTENDANCE & QUEUE MANAGEMENT SYSTEM</td>
-			</tr>
-		</table>			
-</div>
-<div style="position:relative;background-color:#F3F3F3; max-width:25%;width:100%;margin-top:5%;padding:20px;">
-			        <table class="tabBlock" align="center" cellspacing="0" cellpadding="0" border="0">
-			            <tr>
-			            	<td class="clock" id="dc"></td>  <!-- THE DIGITAL CLOCK. -->
-			                <td>
-			                    <table cellpadding="0" cellspacing="0" border="0">
-			                    
-			                        <!-- HOUR IN 'AM' AND 'PM'. -->
-			                        <tr><td class="clocklg" id="dc_hour"></td></tr>
-			
-			                        <!-- SHOWING SECONDS. -->
-			                        <tr><td class="clocklg" id="dc_second"></td></tr>
-			                    </table>
-			                </td>
-			            </tr>
-			        </table>
-    			</div>
-<div style="position:absolute;width:25%;height:70%;top:25%;box-shadow: 4px 5px 16px -1px rgba(255,255,255,1);border:1px solid white;background:lightgrey;">
-	<div style="width:100%;height:12%;background:#102D51;font-weight:10;font-size:2em;text-align:center;padding:10px;">Queue List</div>
-	<table width="100%" style="color:black;font-weight:bold;" border="0">
-		<thead>
-			<td>PHOTO</td>
-			<td align="center">INFO</td>
-			<td align="right">TOKEN NO</td>
-		</thead>
-	</table>
-	<marquee direction="up" scrollamount="3" scrolldelay="4" class="textsize"onmouseover="this.stop()" onMouseOut="this.start()" height="80%">
-	<form id="md5">
-		<table width="96%" border="0" cellspacing="0" cellpadding="0" style="margin :1px;color:black;padding:10px;font-size:0.9em;" id="_queue">
+        <!-- Left Panel: Scanner Status & Terminal Control -->
+        <section class="lg:col-span-1 bg-slate-800 rounded-xl p-6 border border-slate-700 flex flex-col justify-between shadow-xl">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-3 mb-4">Scanner Status</h2>
+                
+                <div class="text-center py-8">
+                    <div class="inline-flex p-4 bg-blue-500/10 rounded-full text-blue-400 mb-3 border border-blue-500/20">
+                        <svg class="w-12 h-12 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457-.39-2.823-1.07-4"></path>
+                        </svg>
+                    </div>
+                    <p class="text-slate-300 font-medium">Ready for RFID / Barcode Scan</p>
+                    <p class="text-xs text-slate-500 mt-1">Scan tag or type digits via card reader</p>
+                </div>
 
-	<input type="hidden" id="inoutdata" value="06:30:00#09:05:00#10:30:00#06:00:00"/>
-	<input type="hidden" id="announcementSetting" value="N#N#N#N#N"/>
-	<input type="hidden" id="bid" value="1"/>
-         
-			                        
-		<tr><td colspan="3"></td></tr>	                        
-		</table>
-		<input type="hidden" name="queueid" value="0"/>
-		<input type="hidden" name="cmd" value="checkRequest"/>
-	</form>
-	</marquee>
-</div>		
-		
-				
-		
-	<div style="position:absolute;top:25%;right:38%;width:350px;" id="_display"></div>
-	<div style="position:absolute;width:200px;"></div>
-			
-<input type="hidden" name="uid" value="1"/>	
-<input type="hidden" name="wave_time" id="wave_time" value=""/>	
+                <!-- Display / Loader Container -->
+                <div id="_display" class="hidden min-h-[80px] p-4 rounded-lg bg-slate-900 border border-slate-700 text-center flex items-center justify-center">
+                    <!-- Dynamic AJAX response or loader.gif inserted here -->
+                </div>
+            </div>
 
+            <!-- Internal System Form States -->
+            <form id="md5" onsubmit="return false;" class="space-y-3 pt-4 border-t border-slate-700">
+                <input type="hidden" id="bid" name="bid" value="1">
+                <input type="hidden" id="hid" name="hid" value="101">
+                <input type="hidden" id="announcementSetting" name="announcementSetting" value="true">
+                <input type="hidden" id="wave_time" name="wave_time" value="">
+                <input type="hidden" id="inoutdata" name="inoutdata" value="">
+                
+                <!-- Helper outputs from AJAX responses -->
+                <input type="hidden" id="toast" value="">
+                <input type="hidden" id="toastMsg" value="">
+                <input type="hidden" id="headname" value="">
+                <input type="hidden" id="queueinfo" value="">
+            </form>
+        </section>
 
+        <!-- Right Panel: Queue / Logs Table -->
+        <section class="lg:col-span-2 bg-slate-800 rounded-xl p-6 border border-slate-700 flex flex-col shadow-xl">
+            <h2 class="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-3 mb-4 flex justify-between items-center">
+                <span>Recent Scan Activity</span>
+                <span class="text-xs font-normal text-slate-400 bg-slate-700 px-2.5 py-1 rounded-full">Live Feed</span>
+            </h2>
 
-	<div id="preloader">
-		<div class="preloader" style="color:white;font-weight:bold;text-align:center;padding:2px;">
-			<span>T</span>
-			<span>E</span>
-			<span>C</span>
-			<span>H</span>
-			<span>N</span>
-			<span>O</span>
-		</div>
-	</div>
+            <div class="overflow-x-auto flex-1">
+                <table id="_queue" class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900 text-slate-400 uppercase text-xs border-b border-slate-700">
+                        <tr>
+                            <th class="py-3 px-4">Status / Logs</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        <tr id="empty_row">
+                            <td class="py-4 px-4 text-slate-500 italic text-center">Waiting for incoming attendance scans...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-    <script src="api/calendar/js/jquery.js"></script>
-	<script type="text/javascript" src="js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="js/main.js"></script>
-	<script src="api/sidePanel/js/main.js"></script> 
-	<script src="api/slimScroll/jquery.slimscroll.js"></script> 
-	<script type="text/javascript" src="api/datePicker/js/DateTimePicker.js"></script>
-	<script src="api/notification/jquery.toast.js"></script>
-<script>
-$(document).ready(function() 
-{
-	var db = setInterval('checkRequest()',1000*10);	
-	var time, abc;
-    time = setInterval('digitized()', 1000);
-    abc = setInterval('getINOUTDATA()', 60000);
-	var pressed = false; 
-	var chars = []; 	
-	$(window).keypress(function(e) {
-    if (e.which >= 48 && e.which <= 57) {
-	            chars.push(String.fromCharCode(e.which));
-	 }
-	 if (pressed == false) {
-	 	setTimeout(function(){
-	                if (chars.length >= 10) {
-	                    var barcode = chars.join("");
-	                    getRFID_TAGS(barcode);
-	                    $('#_display').trigger('click');
-	                }
-	                chars = [];
-	                pressed = false;
-	            },500);
-	        }
-	        pressed = true;
-	    });
-});
-function toastMe(text) 
-{	
-    JSInterface.toastMe(text);
-}
-function getINOUTDATA()
-{
-	$.ajax({
-		method : "POST",
-		url : "inout-manager.jsp",
-		data : {cmd : "inoutdata", bid : $('#bid').val()}
-		
-	}).done(function(msg){
-		$('#inoutdata').val(msg);
-	});
-}
-function getRFID_TAGS(a)
-{
-		var url_cmd = "get_rfid_stu_new";
-		var inoutdata = $('#inoutdata').val().split('#');
-		$('#_display').html('<img src="img/loader.gif" style="weight : 100px;"/>').fadeIn();
-		if($('#inoutdata').val()!="")
-		{			
-			var t1 = $('#wave_time').val();
-			if(t1>=inoutdata[2])
-				url_cmd = "get_rfid_stu_out_new";
-		}
-		var d = new Date();
-			$.ajax({
-		 		method : "POST",
-		 		url : "getRfid.jsp",
-		 		data : {cmd : url_cmd, tags : a, adate : d.yyyymmdd(), uid : $('#hid').val(), wave_time : $('#wave_time').val(), intime_end : inoutdata[1], outtime_end : inoutdata[3], announcementSetting : $('#announcementSetting').val()},		 		
-			    success: function (msg) {		
-			   		$('#_display').html(msg.trim()).fadeIn();		 			
-		 			$('#_display').delay(3000).fadeOut();
-		 			info('INFORMATION',$('#toast').val(),$('#headname').val());
-		 			JSInterface.toastMe($('#toastMsg').val()); 
-		 			$('#_queue tr:last').after($('#queueinfo').val());      		
-			    },
-			     error: function (e) {
-			     	$('#_display').html(msg.trim()).fadeIn();		 			
-		 			$('#_display').delay(1500).fadeOut();	 			
-		 			info('INFORMATION',e.responseText,'error');			     			
-			     }
-		 	});
-		 	
-}
-function checkRequest()
-{
-	$.ajax({
-		method : "POST",
-		url	: "getRfid.jsp",
-		data : $('#md5').serialize()
-	}).done(function(msg){
-		var data = msg.split("#");
-		for(var i = 0; i < data.length-1; i++)
-		{
-			var b= data[i].trim().split('_');
-			JSInterface.toastMe("Token number "+b[1]); 
-			$('#queueid_'+b[0]).remove();
-		}	
-	});
+    </main>
 
-}
-function info(a,b,c)
-	{		
-		$.toast({
-			    heading: a,
-			    text: b,
-			    icon: c,
-			    loader: true,
-			    hideAfter: 5000, 
-			    position: 'bottom-right',
-    			showHideTransition: 'plain',
-    			stack: 7
-    			
-			});	
-	}
-Date.prototype.yyyymmdd = function() {                               
-        var yyyy = this.getFullYear().toString();                                    
-        var mm = (this.getMonth()+1).toString(); // getMonth() is zero-based         
-        var dd  = this.getDate().toString();                             
-        return yyyy + '-' + (mm[1]?mm:"0"+mm[0]) + '-' + (dd[1]?dd:"0"+dd[0]);
-   };
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 p-3 text-center text-xs text-slate-500">
+        Attendance Terminal Software &bull; Status: Active
+    </footer>
 
-</script> 
-
-
-<script>
-    // OUR FUNCTION WHICH IS EXECUTED ON LOAD OF THE PAGE.
-    function digitized() {
-        var dt = new Date();    // DATE() CONSTRUCTOR FOR CURRENT SYSTEM DATE AND TIME.
-        var hrs = dt.getHours();
-        var min = dt.getMinutes();
-        var sec = dt.getSeconds();
-
-        min = Ticking(min);
-        sec = Ticking(sec);
-
-        document.getElementById('dc').innerHTML = Ticking(hrs) + ":" + min;
-        document.getElementById('dc_second').innerHTML = sec;
-        
-        $('#wave_time').val(Ticking(hrs) + ":" + min + ":" + sec);
-
-        if (hrs > 12) { 
-            document.getElementById('dc_hour').innerHTML = 'PM'; 
-        }
-        else { 
-            document.getElementById('dc_hour').innerHTML = 'AM'; 
+    <!-- Logic Script -->
+    <script>
+        // Native / Web Interface Fallback for Android WebViews or Browser
+        function toastMe(text) {
+            if (typeof JSInterface !== "undefined" && JSInterface.toastMe) {
+                JSInterface.toastMe(text);
+            } else {
+                // Fallback to jQuery toast plugin if JSInterface native bridge is absent
+                info('SYSTEM', text, 'info');
+            }
         }
 
-        // CALL THE FUNCTION EVERY 1 SECOND (RECURSION).
-        
-    }
-
-    function Ticking(ticVal) {
-        if (ticVal < 10) {
-            ticVal = "0" + ticVal;
+        function info(a, b, c) {
+            var iconType = (c === 'error') ? 'error' : 'info';
+            $.toast({
+                heading: a,
+                text: b,
+                icon: iconType,
+                loader: true,
+                hideAfter: 5000,
+                position: 'bottom-right',
+                showHideTransition: 'plain',
+                stack: 7
+            });
         }
-        return ticVal;
-    }
-</script>
-  </body>
+
+        // Prototype helper to format dates as YYYY-MM-DD
+        Date.prototype.yyyymmdd = function() {
+            var yyyy = this.getFullYear().toString();
+            var mm = (this.getMonth() + 1).toString();
+            var dd = this.getDate().toString();
+            return yyyy + '-' + (mm[1] ? mm : "0" + mm[0]) + '-' + (dd[1] ? dd : "0" + dd[0]);
+        };
+
+        // Digital Clock Function
+        function digitized() {
+            var dt = new Date();
+            var hrs = dt.getHours();
+            var min = dt.getMinutes();
+            var sec = dt.getSeconds();
+
+            min = Ticking(min);
+            sec = Ticking(sec);
+
+            document.getElementById('dc').innerHTML = Ticking(hrs) + ":" + min;
+            document.getElementById('dc_second').innerHTML = sec;
+
+            $('#wave_time').val(Ticking(hrs) + ":" + min + ":" + sec);
+
+            if (hrs >= 12) {
+                document.getElementById('dc_hour').innerHTML = 'PM';
+            } else {
+                document.getElementById('dc_hour').innerHTML = 'AM';
+            }
+        }
+
+        function Ticking(ticVal) {
+            if (ticVal < 10) {
+                ticVal = "0" + ticVal;
+            }
+            return ticVal;
+        }
+
+        // Fetch In/Out Manager Metadata
+        function getINOUTDATA() {
+            $.ajax({
+                method: "POST",
+                url: "inout-manager.jsp",
+                data: { cmd: "inoutdata", bid: $('#bid').val() }
+            }).done(function(msg) {
+                $('#inoutdata').val(msg);
+            });
+        }
+
+        // Process Scanned RFID Tag
+        function getRFID_TAGS(barcode) {
+            var url_cmd = "get_rfid_stu_new";
+            var inoutdata = $('#inoutdata').val().split('#');
+
+            $('#_display').html('<div class="text-blue-400 font-medium">Processing Scan...</div>').fadeIn();
+
+            if ($('#inoutdata').val() !== "" && inoutdata.length > 3) {
+                var t1 = $('#wave_time').val();
+                if (t1 >= inoutdata[2]) {
+                    url_cmd = "get_rfid_stu_out_new";
+                }
+            }
+
+            var d = new Date();
+            $.ajax({
+                method: "POST",
+                url: "getRfid.jsp",
+                data: {
+                    cmd: url_cmd,
+                    tags: barcode,
+                    adate: d.yyyymmdd(),
+                    uid: $('#hid').val(),
+                    wave_time: $('#wave_time').val(),
+                    intime_end: inoutdata[1] || '',
+                    outtime_end: inoutdata[3] || '',
+                    announcementSetting: $('#announcementSetting').val()
+                },
+                success: function(msg) {
+                    $('#_display').html(msg.trim()).fadeIn();
+                    $('#_display').delay(3000).fadeOut();
+
+                    if ($('#toast').val()) {
+                        info('INFORMATION', $('#toast').val(), $('#headname').val());
+                    }
+                    if ($('#toastMsg').val()) {
+                        toastMe($('#toastMsg').val());
+                    }
+                    if ($('#queueinfo').val()) {
+                        $('#empty_row').remove();
+                        $('#_queue tr:last').after($('#queueinfo').val());
+                    }
+                },
+                error: function(e) {
+                    var errorResponse = e.responseText || "Error processing RFID tag.";
+                    $('#_display').html('<span class="text-red-400">' + errorResponse + '</span>').fadeIn();
+                    $('#_display').delay(1500).fadeOut();
+                    info('INFORMATION', errorResponse, 'error');
+                }
+            });
+        }
+
+        // Background Check Request Polling
+        function checkRequest() {
+            $.ajax({
+                method: "POST",
+                url: "getRfid.jsp",
+                data: $('#md5').serialize()
+            }).done(function(msg) {
+                if (!msg) return;
+                var data = msg.split("#");
+                for (var i = 0; i < data.length - 1; i++) {
+                    var b = data[i].trim().split('_');
+                    if (b.length > 1) {
+                        toastMe("Token number " + b[1]);
+                        $('#queueid_' + b[0]).remove();
+                    }
+                }
+            });
+        }
+
+        // Document Ready Initialization
+        $(document).ready(function() {
+            // Timers
+            setInterval(checkRequest, 10000);
+            setInterval(digitized, 1000);
+            setInterval(getINOUTDATA, 60000);
+
+            // Initial immediate calls
+            digitized();
+            getINOUTDATA();
+
+            // Keyboard/Scanner Listener Logic
+            var pressed = false;
+            var chars = [];
+
+            $(window).keypress(function(e) {
+                // Digits 0 through 9
+                if (e.which >= 48 && e.which <= 57) {
+                    chars.push(String.fromCharCode(e.which));
+                }
+
+                if (pressed === false) {
+                    setTimeout(function() {
+                        if (chars.length >= 10) {
+                            var barcode = chars.join("");
+                            getRFID_TAGS(barcode);
+                            $('#_display').trigger('click');
+                        }
+                        chars = [];
+                        pressed = false;
+                    }, 500);
+                }
+                pressed = true;
+            });
+        });
+    </script>
+</body>
 </html>
