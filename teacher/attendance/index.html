@@ -1,0 +1,310 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#E54F17">
+    <title>Time Attendance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="css/bootstrap.min.css" />
+	<link type="text/css" rel="stylesheet" href="css/owl.carousel.css" />
+	<link type="text/css" rel="stylesheet" href="css/owl.theme.default.css" />
+	<link type="text/css" rel="stylesheet" href="css/magnific-popup.css" />
+	<link rel="stylesheet" href="css/font-awesome.min.css">
+	<link type="text/css" rel="stylesheet" href="css/style.css" />	
+	<link rel="stylesheet" href="api/sidePanel/css/reset.css"> <!-- CSS reset -->
+	<link rel="stylesheet" href="api/sidePanel/css/style.css"> <!-- Resource style -->
+	<link rel="stylesheet" href="css/timetable.css">
+	<link rel="stylesheet" href="css/font-awesome.min.css">
+	<link href="css/AdminLTE.min.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="api/datePicker/css/DateTimePicker.css" />
+	<link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet" type="text/css"/>
+	<link href="api/notification/jquery.toast.css" rel="stylesheet">
+	<style>
+        .tabBlock
+        {
+            background-color:#57574f;
+            border:solid 0px #FFA54F;
+            border-radius:5px; -moz-border-radius:5px; -webkit-border-radius:5px;
+            max-width:200px;
+            width:100%;
+            overflow:hidden;
+            display:block;
+        }
+        .clock
+        {
+            vertical-align:middle;
+            font-family:Orbitron;
+            font-size:3eh;
+            font-weight:normal;
+            color:#FFF;
+            padding:0 10px;
+        }
+        .clocklg 
+        {
+            vertical-align:middle; 
+            font-family:Orbitron;
+            font-size:0.8em;
+            font-weight:normal;
+            color:#FFF;
+        }
+    </style>
+	<style>
+
+#sub-menu a
+{
+	width:70px;
+	height:auto;
+	text-decoration: none;
+	display: inline-block;
+	color:#D23C05;
+	font-size : 12px;
+}
+#sub-menu p
+{
+	text-decoration: none;
+	text-shadow: 1px 1px 1px #FFF;
+	display: inline-block;
+	color:#D23C05;
+	font-size : 12px;
+}
+.box-title 
+{
+	display:inline-block;
+	font-size:14px;
+	margin:0;
+	line-height:1
+}
+
+	</style>
+  </head>
+  
+  <body class="noselect" style="overflow:hidden;fontfamily:calibri;background-image:url('img/bg1.jpg');background-position: center;  background-repeat: no-repeat;  background-size: cover;" onload="">
+  <input type="hidden" id="hid" value="1"/>
+
+<div class="headerBar" style="background:#102D51;">
+		<table style="position:relative;color:white;font-size:1.5em; width:100%;margin-top:15px;" >
+			<tr>
+				<td align="center"><span style="float:left"><a href="#" style="color:white;">&nbsp;&nbsp;</a></span><i class="fa fa-clock-o"></i>&nbsp;TechnoEDU TIME ATTENDANCE & QUEUE MANAGEMENT SYSTEM</td>
+			</tr>
+		</table>			
+</div>
+<div style="position:relative;background-color:#F3F3F3; max-width:25%;width:100%;margin-top:5%;padding:20px;">
+			        <table class="tabBlock" align="center" cellspacing="0" cellpadding="0" border="0">
+			            <tr>
+			            	<td class="clock" id="dc"></td>  <!-- THE DIGITAL CLOCK. -->
+			                <td>
+			                    <table cellpadding="0" cellspacing="0" border="0">
+			                    
+			                        <!-- HOUR IN 'AM' AND 'PM'. -->
+			                        <tr><td class="clocklg" id="dc_hour"></td></tr>
+			
+			                        <!-- SHOWING SECONDS. -->
+			                        <tr><td class="clocklg" id="dc_second"></td></tr>
+			                    </table>
+			                </td>
+			            </tr>
+			        </table>
+    			</div>
+<div style="position:absolute;width:25%;height:70%;top:25%;box-shadow: 4px 5px 16px -1px rgba(255,255,255,1);border:1px solid white;background:lightgrey;">
+	<div style="width:100%;height:12%;background:#102D51;font-weight:10;font-size:2em;text-align:center;padding:10px;">Queue List</div>
+	<table width="100%" style="color:black;font-weight:bold;" border="0">
+		<thead>
+			<td>PHOTO</td>
+			<td align="center">INFO</td>
+			<td align="right">TOKEN NO</td>
+		</thead>
+	</table>
+	<marquee direction="up" scrollamount="3" scrolldelay="4" class="textsize"onmouseover="this.stop()" onMouseOut="this.start()" height="80%">
+	<form id="md5">
+		<table width="96%" border="0" cellspacing="0" cellpadding="0" style="margin :1px;color:black;padding:10px;font-size:0.9em;" id="_queue">
+
+	<input type="hidden" id="inoutdata" value="06:30:00#09:05:00#10:30:00#06:00:00"/>
+	<input type="hidden" id="announcementSetting" value="N#N#N#N#N"/>
+	<input type="hidden" id="bid" value="1"/>
+         
+			                        
+		<tr><td colspan="3"></td></tr>	                        
+		</table>
+		<input type="hidden" name="queueid" value="0"/>
+		<input type="hidden" name="cmd" value="checkRequest"/>
+	</form>
+	</marquee>
+</div>		
+		
+				
+		
+	<div style="position:absolute;top:25%;right:38%;width:350px;" id="_display"></div>
+	<div style="position:absolute;width:200px;"></div>
+			
+<input type="hidden" name="uid" value="1"/>	
+<input type="hidden" name="wave_time" id="wave_time" value=""/>	
+
+
+
+	<div id="preloader">
+		<div class="preloader" style="color:white;font-weight:bold;text-align:center;padding:2px;">
+			<span>T</span>
+			<span>E</span>
+			<span>C</span>
+			<span>H</span>
+			<span>N</span>
+			<span>O</span>
+		</div>
+	</div>
+
+    <script src="api/calendar/js/jquery.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
+	<script src="api/sidePanel/js/main.js"></script> 
+	<script src="api/slimScroll/jquery.slimscroll.js"></script> 
+	<script type="text/javascript" src="api/datePicker/js/DateTimePicker.js"></script>
+	<script src="api/notification/jquery.toast.js"></script>
+<script>
+$(document).ready(function() 
+{
+	var db = setInterval('checkRequest()',1000*10);	
+	var time, abc;
+    time = setInterval('digitized()', 1000);
+    abc = setInterval('getINOUTDATA()', 60000);
+	var pressed = false; 
+	var chars = []; 	
+	$(window).keypress(function(e) {
+    if (e.which >= 48 && e.which <= 57) {
+	            chars.push(String.fromCharCode(e.which));
+	 }
+	 if (pressed == false) {
+	 	setTimeout(function(){
+	                if (chars.length >= 10) {
+	                    var barcode = chars.join("");
+	                    getRFID_TAGS(barcode);
+	                    $('#_display').trigger('click');
+	                }
+	                chars = [];
+	                pressed = false;
+	            },500);
+	        }
+	        pressed = true;
+	    });
+});
+function toastMe(text) 
+{	
+    JSInterface.toastMe(text);
+}
+function getINOUTDATA()
+{
+	$.ajax({
+		method : "POST",
+		url : "inout-manager.jsp",
+		data : {cmd : "inoutdata", bid : $('#bid').val()}
+		
+	}).done(function(msg){
+		$('#inoutdata').val(msg);
+	});
+}
+function getRFID_TAGS(a)
+{
+		var url_cmd = "get_rfid_stu_new";
+		var inoutdata = $('#inoutdata').val().split('#');
+		$('#_display').html('<img src="img/loader.gif" style="weight : 100px;"/>').fadeIn();
+		if($('#inoutdata').val()!="")
+		{			
+			var t1 = $('#wave_time').val();
+			if(t1>=inoutdata[2])
+				url_cmd = "get_rfid_stu_out_new";
+		}
+		var d = new Date();
+			$.ajax({
+		 		method : "POST",
+		 		url : "getRfid.jsp",
+		 		data : {cmd : url_cmd, tags : a, adate : d.yyyymmdd(), uid : $('#hid').val(), wave_time : $('#wave_time').val(), intime_end : inoutdata[1], outtime_end : inoutdata[3], announcementSetting : $('#announcementSetting').val()},		 		
+			    success: function (msg) {		
+			   		$('#_display').html(msg.trim()).fadeIn();		 			
+		 			$('#_display').delay(3000).fadeOut();
+		 			info('INFORMATION',$('#toast').val(),$('#headname').val());
+		 			JSInterface.toastMe($('#toastMsg').val()); 
+		 			$('#_queue tr:last').after($('#queueinfo').val());      		
+			    },
+			     error: function (e) {
+			     	$('#_display').html(msg.trim()).fadeIn();		 			
+		 			$('#_display').delay(1500).fadeOut();	 			
+		 			info('INFORMATION',e.responseText,'error');			     			
+			     }
+		 	});
+		 	
+}
+function checkRequest()
+{
+	$.ajax({
+		method : "POST",
+		url	: "getRfid.jsp",
+		data : $('#md5').serialize()
+	}).done(function(msg){
+		var data = msg.split("#");
+		for(var i = 0; i < data.length-1; i++)
+		{
+			var b= data[i].trim().split('_');
+			JSInterface.toastMe("Token number "+b[1]); 
+			$('#queueid_'+b[0]).remove();
+		}	
+	});
+
+}
+function info(a,b,c)
+	{		
+		$.toast({
+			    heading: a,
+			    text: b,
+			    icon: c,
+			    loader: true,
+			    hideAfter: 5000, 
+			    position: 'bottom-right',
+    			showHideTransition: 'plain',
+    			stack: 7
+    			
+			});	
+	}
+Date.prototype.yyyymmdd = function() {                               
+        var yyyy = this.getFullYear().toString();                                    
+        var mm = (this.getMonth()+1).toString(); // getMonth() is zero-based         
+        var dd  = this.getDate().toString();                             
+        return yyyy + '-' + (mm[1]?mm:"0"+mm[0]) + '-' + (dd[1]?dd:"0"+dd[0]);
+   };
+
+</script> 
+
+
+<script>
+    // OUR FUNCTION WHICH IS EXECUTED ON LOAD OF THE PAGE.
+    function digitized() {
+        var dt = new Date();    // DATE() CONSTRUCTOR FOR CURRENT SYSTEM DATE AND TIME.
+        var hrs = dt.getHours();
+        var min = dt.getMinutes();
+        var sec = dt.getSeconds();
+
+        min = Ticking(min);
+        sec = Ticking(sec);
+
+        document.getElementById('dc').innerHTML = Ticking(hrs) + ":" + min;
+        document.getElementById('dc_second').innerHTML = sec;
+        
+        $('#wave_time').val(Ticking(hrs) + ":" + min + ":" + sec);
+
+        if (hrs > 12) { 
+            document.getElementById('dc_hour').innerHTML = 'PM'; 
+        }
+        else { 
+            document.getElementById('dc_hour').innerHTML = 'AM'; 
+        }
+
+        // CALL THE FUNCTION EVERY 1 SECOND (RECURSION).
+        
+    }
+
+    function Ticking(ticVal) {
+        if (ticVal < 10) {
+            ticVal = "0" + ticVal;
+        }
+        return ticVal;
+    }
+</script>
+  </body>
+</html>
