@@ -172,7 +172,7 @@
         function getINOUTDATA() {
             $.ajax({
                 method: "POST",
-                url: "inout-manager.jsp",
+                url: "https://bsdacademyfaridipur.in/android_app/inout-manager.jsp",
                 data: { cmd: "inoutdata", bid: $('#bid').val() }
             }).done(function(msg) {
                 $('#inoutdata').val(msg);
