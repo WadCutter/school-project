@@ -83,8 +83,8 @@
           <p id="grandTotal" class="text-xl font-bold">0</p>
         </div>
         <div>
-          <p class="text-xs text-emerald-400 font-medium uppercase tracking-wider">Present</p>
-          <p id="grandPresent" class="text-xl font-bold text-emerald-400">0</p>
+          <p class="text-xs text-emerald-400 font-medium uppercase tracking-wider">Present (%)</p>
+          <p id="grandPresent" class="text-xl font-bold text-emerald-400">0 <span id="grandPresentPct" class="text-sm font-semibold text-emerald-300 ml-1">(0.0%)</span></p>
         </div>
         <div>
           <p class="text-xs text-rose-400 font-medium uppercase tracking-wider">Absent</p>
@@ -195,7 +195,7 @@
       }
     }
 
-    // Restore state with daily partial expiry (keeps Totals & Structure, resets Present/Absent on new day)
+    // Restore state with daily partial expiry
     function loadFromLocalStorage() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -214,9 +214,9 @@
             className: cls.className,
             sections: cls.sections.map(sec => ({
               sectionLetter: sec.sectionLetter,
-              total: sec.total, // Always keep Total
-              present: isNewDay ? '' : sec.present, // Clear Present if new day
-              absent: isNewDay ? '' : sec.absent    // Clear Absent if new day
+              total: sec.total, 
+              present: isNewDay ? '' : sec.present, 
+              absent: isNewDay ? '' : sec.absent    
             }))
           }));
 
@@ -228,7 +228,6 @@
 
           if (isNewDay) {
             bannerMsg.innerHTML = '☀️ <strong>New Day Started:</strong> Restored total student counts & custom sections. Present & Absent reset to blank.';
-            // Save updated structure with current date key
             saveToLocalStorage();
           } else {
             bannerMsg.innerHTML = '💾 <strong>Restored saved draft</strong> for today\'s attendance.';
@@ -639,8 +638,11 @@
         });
       });
 
+      const pct = grandTotal > 0 ? ((grandPresent / grandTotal) * 100).toFixed(1) : '0.0';
+
       document.getElementById('grandTotal').innerText = grandTotal;
-      document.getElementById('grandPresent').innerText = grandPresent;
+      document.getElementById('grandPresent').childNodes[0].nodeValue = grandPresent + ' ';
+      document.getElementById('grandPresentPct').innerText = `(${pct}%)`;
       document.getElementById('grandAbsent').innerText = grandAbsent;
     }
 
@@ -710,8 +712,11 @@
         text += `  No active attendance filled.\n`;
       }
 
+      const overallPct = grandTotal > 0 ? ((grandPresent / grandTotal) * 100).toFixed(1) : '0.0';
+
       text += `${'-'.repeat(35)}\n`;
       text += `${pad('TOTAL:', 11)} ${pad(grandPresent, 8, true)} ${pad(grandAbsent, 7, true)} ${pad(grandTotal, 6, true)}\n`;
+      text += `${pad('PERCENT:', 11)} ${pad(overallPct + '%', 8, true)}\n`;
 
       text += `\`\`\`\n`;
 
