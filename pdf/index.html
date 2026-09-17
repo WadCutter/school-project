@@ -20,6 +20,20 @@
     h1 { text-align: center; margin-bottom: 0.2rem; color: #1a252f; font-size: 1.6rem; }
     p.subtitle { text-align: center; color: #666; margin-bottom: 1rem; font-size: 0.88rem; }
 
+    /* Trust & Security Banner */
+    .trust-banner {
+      background: #e6f4ea; border: 1px solid #ceead6; border-radius: 8px;
+      padding: 0.9rem 1.2rem; margin-bottom: 1rem; color: #137333;
+    }
+    .trust-banner h3 { margin: 0 0 0.4rem 0; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+    .trust-grid {
+      display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 0.82rem; color: #1e8e3e;
+    }
+    @media (min-width: 700px) {
+      .trust-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .trust-item { display: flex; align-items: center; gap: 6px; }
+
     /* Control Panel Styling */
     .top-bar {
       display: flex; flex-direction: column; gap: 12px;
@@ -81,7 +95,6 @@
       justify-content: space-between; align-items: center; background: #f8f9fa; padding: 8px 12px; border-radius: 6px;
     }
 
-    /* Container allowing responsive scaling on small devices */
     .canvas-wrapper {
       border: 1px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; margin: auto; max-width: 100%; overflow: auto;
     }
@@ -93,6 +106,16 @@
 
   <h1>Client-Side PDF Studio</h1>
   <p class="subtitle">Merge PDFs, add images, drag pages, resize & rotate elements on any screen.</p>
+
+  <!-- Trust & Security Banner -->
+  <div class="trust-banner">
+    <h3>🔒 100% Private & Secure Processing</h3>
+    <div class="trust-grid">
+      <div class="trust-item"><span>✅</span> <strong>No File Uploads:</strong> Files stay on your device</div>
+      <div class="trust-item"><span>⚡</span> <strong>In-Browser Execution:</strong> Zero cloud servers involved</div>
+      <div class="trust-item"><span>🛡️</span> <strong>Privacy Protected:</strong> Offline-capable & secret-safe</div>
+    </div>
+  </div>
 
   <!-- Top Action Controls -->
   <div class="top-bar">
@@ -181,14 +204,13 @@
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-    // Standard Paper Sizes in Points (72 DPI)
     const PAGE_SIZES = {
       a4: { w: 595.28, h: 841.89 },
       letter: { w: 612.00, h: 792.00 },
       legal: { w: 612.00, h: 1008.00 }
     };
 
-    let pages = []; // { id, width, height, originalWidth, originalHeight, fabricJSON, basePdfImage, orientation, paperType }
+    let pages = [];
     let activePageIndex = -1;
     let fabricCanvas = null;
     let isSwitchingPage = false;
@@ -206,7 +228,6 @@
     const qualitySelect = document.getElementById('qualitySelect');
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Fabric canvas setup with touch support & enlarged handles
       fabricCanvas = new fabric.Canvas('pdfCanvas', {
         preserveObjectStacking: true,
         selection: true,
@@ -224,7 +245,6 @@
       fabricCanvas.on('object:added', () => { if (!isSwitchingPage) saveCurrentPageState(); });
       fabricCanvas.on('object:removed', () => { if (!isSwitchingPage) saveCurrentPageState(); });
 
-      // Initialize SortableJS for Touch Reordering
       new Sortable(pagesList, {
         animation: 150,
         handle: '.page-thumb-card',
@@ -240,7 +260,6 @@
       });
     });
 
-    // Import PDFs
     pdfInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
       if (files.length === 0) return;
@@ -286,7 +305,6 @@
       updateUI();
     });
 
-    // Add Image Overlay
     imageInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
       if (files.length === 0) return;
@@ -319,7 +337,6 @@
       imageInput.value = '';
     });
 
-    // Add Blank Page
     async function addBlankPage() {
       const paperType = pageSizeSelect.value === 'original' ? 'a4' : pageSizeSelect.value;
       const orientation = orientationSelect.value;
@@ -355,7 +372,6 @@
         : { w: base.w, h: base.h };
     }
 
-    // Dynamic Page Layout & Orientation Update
     async function updatePageLayout() {
       if (activePageIndex === -1 || !pages[activePageIndex]) return;
 
@@ -422,7 +438,6 @@
       renderSidebar();
     }
 
-    // Switch Active Page with Lock Protection
     function switchPage(index) {
       return new Promise((resolve) => {
         if (index < 0 || index >= pages.length) {
@@ -565,7 +580,6 @@
       loading.style.display = state ? 'block' : 'none';
     }
 
-    // Export PDF
     async function downloadPDF() {
       if (pages.length === 0) return;
 
