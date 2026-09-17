@@ -266,21 +266,30 @@
       margin-top: 4px;
     }
 
-    /* Text Display Area */
+    /* Justified Text Display Box */
     .text-display {
       font-family: var(--font-mono);
       font-size: 20px;
-      line-height: 1.6;
-      height: 150px;
+      line-height: 1.8;
+      height: 160px;
       overflow-y: auto;
       background: var(--bg-color);
-      padding: 20px;
+      padding: 22px;
       border-radius: 20px;
       border: 2px solid var(--border-color);
       user-select: none;
-      word-break: break-all;
-      white-space: pre-wrap;
       position: relative;
+      
+      /* Justified Alignment Styling */
+      text-align: justify;
+      text-justify: inter-word;
+      word-spacing: 0.05em;
+    }
+
+    /* Wrap words so inline flex justification spreads lines naturally */
+    .word-span {
+      display: inline-block;
+      white-space: nowrap;
     }
 
     .char {
@@ -436,7 +445,7 @@
     @media (max-width: 650px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .controls-bar { flex-direction: column; align-items: flex-start; }
-      .text-display { font-size: 16px; }
+      .text-display { font-size: 16px; text-align: left; }
     }
   </style>
 </head>
@@ -448,8 +457,7 @@
 
   <header>
     <div class="brand">
-      <!-- Image Logo pointing to logo.png -->
-      <img src="\logo.png" alt="BSD Academy Logo" class="brand-logo-img" onerror="this.style.display='none';" />
+      <img src="/logo.png" alt="BSD Academy Logo" class="brand-logo-img" onerror="this.style.display='none';" />
       <div class="brand-titles">
         <h1>BSD Academy</h1>
         <span>Path to Excellence — Typing Test</span>
@@ -503,7 +511,7 @@
       </div>
     </div>
 
-    <!-- Main Typing Text Box -->
+    <!-- Main Justified Typing Text Box -->
     <div class="text-display" id="text-display"></div>
 
     <!-- Hidden Input Field for capturing keyboard input -->
@@ -532,11 +540,9 @@
 
   <script>
     const sampleParagraphs = [
-      "welcome to bsd academy where consistent typing practice leads to mastery focus on rhythm accuracy and control with every key you hit today",
-      "curious minds explore new pathways every single day practice makes perfect when you keep your fingers moving smoothly across the keyboard layout",
-      "bsd academy typing tests boost your speed and precision focus on clarity first and velocity will naturally follow like waves on a peaceful shore",
-      "laptops and desktops connect students across the globe sharing ideas stories and creative projects smoothly with every keystroke typed with care",
-      "learning to type fast requires patience steady focus and relaxing your hands while keeping your rhythm clean like a clock heartbeat"
+      "welcome to bsd academy where consistent typing practice leads to mastery focus on rhythm accuracy and control with every key you hit today curious minds explore new pathways every single day practice makes perfect when you keep your fingers moving smoothly across the keyboard layout",
+      "bsd academy typing tests boost your speed and precision focus on clarity first and velocity will naturally follow like waves on a peaceful shore laptops and desktops connect students across the globe sharing ideas stories and creative projects smoothly with every keystroke typed with care",
+      "learning to type fast requires patience steady focus and relaxing your hands while keeping your rhythm clean like a clock heartbeat bright sunshine fills the classroom as students learn computational logic and modern technology skills with passion and dedication"
     ];
 
     let timerDuration = 15;
@@ -624,14 +630,34 @@
         currentText = sampleParagraphs[Math.floor(Math.random() * sampleParagraphs.length)];
       }
       
-      // Render character elements
+      // Render text formatted into words with span characters to preserve text-align: justify
       textDisplay.innerHTML = "";
-      currentText.split('').forEach((char, idx) => {
-        const charSpan = document.createElement('span');
-        charSpan.classList.add('char');
-        if (idx === 0) charSpan.classList.add('current');
-        charSpan.innerText = char;
-        textDisplay.appendChild(charSpan);
+      const words = currentText.split(' ');
+      let globalIdx = 0;
+
+      words.forEach((word, wIdx) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'word-span';
+
+        word.split('').forEach((char) => {
+          const charSpan = document.createElement('span');
+          charSpan.classList.add('char');
+          if (globalIdx === 0) charSpan.classList.add('current');
+          charSpan.innerText = char;
+          wordSpan.appendChild(charSpan);
+          globalIdx++;
+        });
+
+        textDisplay.appendChild(wordSpan);
+
+        // Add trailing space character span except for the last word
+        if (wIdx < words.length - 1) {
+          const spaceSpan = document.createElement('span');
+          spaceSpan.classList.add('char');
+          spaceSpan.innerText = ' ';
+          textDisplay.appendChild(spaceSpan);
+          globalIdx++;
+        }
       });
 
       focusInput();
@@ -700,7 +726,6 @@
 
         if (charIndex < characters.length) {
           characters[charIndex].classList.add('current');
-          // Auto scroll text view smoothly
           characters[charIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
           endGame();
